@@ -3,7 +3,7 @@ CFLAGS = -Isrc/include -std=c++26 -Wall -Wextra
 LDFLAGS = -Lsrc/lib
 GLFWFLAGS = -lglfw3
 
-TARGET = main
+TARGET = Main
 SRC = $(filter-out src/$(TARGET).cpp, $(wildcard src/*.cpp))
 OBJ = $(SRC:src/%.cpp=%.o) glad.o
 

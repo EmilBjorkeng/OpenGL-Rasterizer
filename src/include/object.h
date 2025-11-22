@@ -1,25 +1,42 @@
-#ifndef __OBJ_H__
-#define __OBJ_H__
+#ifndef __OBJECT_H__
+#define __OBJECT_H__
 
-#include "shader.h"
-
-#include <glm/glm.hpp>
+#include "Shader.h"
 #include <vector>
+
+class Object {
+public:
+    const Shader* shader = nullptr;
+    unsigned int VAO = 0, VBO = 0;
+
+    std::vector<float> vertices;
+    std::vector<unsigned int> textures;
+
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec3 rotation = glm::vec3(0.0f);
+    glm::vec3 scale = glm::vec3(1.0f);
+
+    Object(const char* path, const Shader* shader);
+    void draw();
+};
+
+
+
+
+
+
+/*
+struct Vertex {
+    glm::vec3 point;
+    glm::vec2 texture;
+    glm::vec3 normal;
+};
 
 struct Material {
     std::string name;
-
-    //glm::vec3 ambientColor;     // Ka - Ambient color
-    glm::vec3 diffuseColor;     // Kd - Diffuse color
-    //glm::vec3 specularColor;    // Ks - Specular color
-    //glm::vec3 EmissiveColor;    // Ke - Emissive color
-    //float shininess;            // Ns - Specular exponent
-    //float refraction;           // Ni - Optical density
-    float opacity;              // d or Tr - Transparency (1.0 = opaque)
-
-    unsigned int diffuseTexture;    // map_Kd - Diffuse texture
-    //unsigned int specularTexture;   // map_Ks - Specular texture
-    //unsigned int normalMap;         // bump or map_Bump - Normal map
+    glm::vec3 diffuseColor;
+    unsigned int diffuseTexture;
+    float opacity;
 };
 
 struct Object {
@@ -28,8 +45,8 @@ struct Object {
     glm::vec3 rotation = glm::vec3(0.0f);
     glm::vec3 scale = glm::vec3(1.0f);
 
-    std::vector<unsigned int> textures;
     const Shader *shader;
+    std::vector<unsigned int> textures;
 
     unsigned int VAO;
     unsigned int VBO;
@@ -45,14 +62,8 @@ struct Object {
     Object& operator=(const Object&) = delete;
 };
 
-struct Vertex {
-    glm::vec3 point;
-    glm::vec2 texture;
-    glm::vec3 normal;
-};
-
 std::vector<float> LoadObjFile(const char* path, std::vector<unsigned int> &textures);
 Material loadMaterial(const char* path, std::string currentMaterial);
-std::vector<float> MakeTriangle(std::vector<Vertex>& vertices, const Material &material);
+std::vector<float> MakeTriangle(std::vector<Vertex>& vertices, const Material &material);*/
 
 #endif
