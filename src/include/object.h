@@ -17,7 +17,7 @@ public:
     glm::vec3 scale = glm::vec3(1.0f);
 
     Object(const char* path, const Shader* shader);
-    void draw();
+    void draw(const glm::mat4 view, const glm::mat4 projection);
 };
 
 #endif

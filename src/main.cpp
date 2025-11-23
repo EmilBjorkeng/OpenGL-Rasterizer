@@ -6,8 +6,7 @@
 
 #include "Shader.h"
 #include "object.h"
-#include "Input.h"
-#include "STB/stb_image.h"
+#include "Camera.h"
 
 #include <iostream>
 
@@ -17,8 +16,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
 
-int main()
-{
+int main() {
     // Initialize and configure (glfw)
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -46,39 +44,94 @@ int main()
     // Configure global opengl state
     glEnable(GL_DEPTH_TEST);
 
+    Camera camera(glm::vec3(0, 2, 0), glm::vec3(0, 0, 0));
+
     Shader TextureShader("shaders/shader.vs", "shaders/shader.fs");
 
-    Object Cube("assets/MultiCube.obj", &TextureShader);
-    Cube.position = glm::vec3(0.0f,  0.0f,  -5.0f);
+    Object Cube("assets/Cube.obj", &TextureShader);
+    Cube.position = glm::vec3(0.0f,  -0.5f,  -5.0f);
+    Cube.rotation = glm::vec3(20.0f, 15.0f, 0.0f);
+    Cube.scale = glm::vec3(0.5f);
 
-    float angle = 0.0f;
-    while (!glfwWindowShouldClose(window))
-    {
+    Object Cube2("assets/Cube.obj", &TextureShader);
+    Cube2.position = glm::vec3(3.0f,  0.0f,  -6.0f);
+    Cube2.rotation = glm::vec3(15.0f, -10.0f, 20.0f);
+    Cube2.scale = glm::vec3(0.8f);
+
+    double lastTime = glfwGetTime();
+    double DeltaTime = 0.0;
+
+    while (!glfwWindowShouldClose(window)) {
+        double currentTime = glfwGetTime();
+        DeltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
         // Input
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
+        float moveSpeed = 2.0f;
+        float turnSpeed = 60.0f;
+        float angle = glm::radians(turnSpeed * DeltaTime);
+        glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+
+        // Movement
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            camera.position += camera.Forward() * static_cast<float>(moveSpeed * DeltaTime);
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            camera.position -= camera.Forward() * static_cast<float>(moveSpeed * DeltaTime);
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            camera.position -= camera.Right() * static_cast<float>(moveSpeed * DeltaTime);
+
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            camera.position += camera.Right() * static_cast<float>(moveSpeed * DeltaTime);
+
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+            camera.position.y += moveSpeed * DeltaTime;
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            camera.position.y -= moveSpeed * DeltaTime;
+
+        // Pitch
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+            camera.rotation = glm::angleAxis(angle, glm::normalize(camera.Right())) * camera.rotation;
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+            camera.rotation = glm::angleAxis(-angle, glm::normalize(camera.Right())) * camera.rotation;
+
+        // Yaw
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+            camera.rotation = glm::angleAxis(angle, worldUp) * camera.rotation;
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+            camera.rotation = glm::angleAxis(-angle, worldUp) * camera.rotation;
+
+        // Roll
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            camera.rotation = glm::angleAxis(-angle, glm::normalize(camera.Forward())) * camera.rotation;
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            camera.rotation = glm::angleAxis(angle, glm::normalize(camera.Forward())) * camera.rotation;
+
+        // Reset Roll
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            glm::mat4 lookAtMat = glm::lookAt(glm::vec3(0.0f), camera.Forward(), worldUp);
+            camera.rotation = glm::quat_cast(glm::inverse(lookAtMat));
+        }
+
+        camera.rotation = glm::normalize(camera.rotation);
+
         // Logic
-        angle += 0.25f;
 
         // Draw
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, Cube.position);
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-
-        Cube.shader->setMat4("projection", projection);
-        Cube.shader->setMat4("view", view);
-        Cube.shader->setMat4("model", model);
-
-        Cube.draw();
+        Cube.draw(view, projection);
+        Cube2.draw(view, projection);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -88,7 +141,6 @@ int main()
 }
 
 // Callback for whenever the window size changed (by OS or user resize)
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }

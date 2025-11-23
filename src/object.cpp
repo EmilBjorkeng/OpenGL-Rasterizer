@@ -71,21 +71,34 @@ Object::Object(const char* path, const Shader* shader) {
     glBindVertexArray(0);
 }
 
-void Object::draw() {
+void Object::draw(const glm::mat4 view, const glm::mat4 projection) {
+    // Construct model matrix
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, scale);
+
+    // Apply all matrices
+    shader->setMat4("projection", projection);
+    shader->setMat4("view", view);
+    shader->setMat4("model", model);
+
     // Bind all textures
     for (int i = 0; i < (int)textures.size(); ++i) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures[i]);
     }
 
+    // Activates shader and maps each texture to their corresponding unit
     shader->use();
-
     std::vector<int> texUnits(textures.size());
     for (int i = 0; i < (int)textures.size(); ++i)
         texUnits[i] = i;
-
     shader->setIntArray("textures", texUnits);
 
+    // Bind VAO, draw call, unbind VAB
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 13);
     glBindVertexArray(0);
