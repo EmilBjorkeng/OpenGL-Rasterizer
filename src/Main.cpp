@@ -12,6 +12,7 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 #define WINDOW_TITLE "Title"
 int window_width = 1920;
@@ -33,7 +34,10 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Load all OpenGL function pointers (glad)
     if (!gladLoadGL(glfwGetProcAddress))
@@ -127,11 +131,10 @@ int main() {
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        float moveSpeed = 2.0f;
-        float turnSpeed = 60.0f;
-        float lerpSpeed = 5.0f;
-        float angle = glm::radians(turnSpeed * DeltaTime);
-        glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+        // Speed boost
+        float moveSpeed = camera.moveSpeed;
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            moveSpeed *= 3.0f;
 
         // Movement
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -149,8 +152,12 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
             camera.position.y += moveSpeed * DeltaTime;
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
             camera.position.y -= moveSpeed * DeltaTime;
+
+        float lerpSpeed = 5.0f;
+        glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+        float angle = glm::radians(camera.turnSpeed * DeltaTime);
 
         // Pitch
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -211,4 +218,30 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
     window_width = width;
     window_height = height;
+}
+
+// Callback for whenever the mouse is moved
+bool firstMouse = true;
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    static double lastX = xpos, lastY = ypos;
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    double xoffset = xpos - lastX;
+    double yoffset = lastY - ypos;
+
+    lastX = xpos;
+    lastY = ypos;
+
+    // Apply rotation
+    glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+    Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    camera->rotation = glm::angleAxis((float)-xoffset * camera->sensitivity, worldUp) * camera->rotation;
+    camera->rotation = glm::angleAxis((float)yoffset * camera->sensitivity, glm::normalize(camera->Right())) * camera->rotation;
 }

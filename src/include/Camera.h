@@ -16,6 +16,10 @@ public:
     float nearPlane = 0.1f;
     float farPlane = 100.0f;
 
+    float moveSpeed = 2.0f;
+    float turnSpeed = 60.0f;
+    float sensitivity = 0.0025f;
+
     Camera() = default;
 
     // Constructor with position and quaternion
