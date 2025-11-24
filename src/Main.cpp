@@ -110,7 +110,7 @@ int main() {
     Cube.scale = glm::vec3(0.5f);
     sceneObjects.push_back(&Cube);
 
-    light(glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
+    light(glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 4.0f);
 
     Object Monkey("assets/Monkey.obj", &Shader);
     Monkey.position = glm::vec3(5.0f,  0.0f,  -7.0f);
@@ -118,6 +118,17 @@ int main() {
     sceneObjects.push_back(&Monkey);
 
     light(glm::vec3(5.0f, -1.0f, -6.0f), glm::vec3(0.0f, 1.0f, 0.0f), 1.0f);
+
+    Object AlphaCube("assets/AlphaCube.obj", &Shader);
+    AlphaCube.position = glm::vec3(0.5f, 0.5f, -5.0f);
+    AlphaCube.scale = glm::vec3(0.3f);
+    sceneObjects.push_back(&AlphaCube);
+
+    Object Dragon("assets/Dragon.obj", &Shader);
+    Dragon.position = glm::vec3(-1.0f, -2.0f, -10.0f);
+    sceneObjects.push_back(&Dragon);
+
+    light(glm::vec3(-1.0f, -1.0f, -9.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
     double lastTime = glfwGetTime();
     double DeltaTime = 0.0;

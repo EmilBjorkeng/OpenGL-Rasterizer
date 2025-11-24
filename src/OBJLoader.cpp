@@ -6,11 +6,13 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <vector>
 
 struct FaceVertex {
     int v = 0, vt = 0, vn = 0;
 };
 
+// Triangulate a polygonal face using ear clipping
 static std::vector<Vertex> triangulateFace(std::vector<Vertex>& face) {
     std::vector<Vertex> result;
     int n = face.size();
@@ -40,7 +42,7 @@ static std::vector<Vertex> triangulateFace(std::vector<Vertex>& face) {
     }
     bool ccw = (totalArea < 0.0f);
 
-    // Ensure orientation is Counter Clockwise
+    // Ensure counter-clockwise orientation
     if (!ccw) {
         std::reverse(face.begin(), face.end());
         projected.clear();
@@ -165,28 +167,52 @@ std::vector<Face> OBJLoader::loadOBJ(const std::string& path) {
         }
         else if (type == "f") {
             std::vector<Vertex> faceVertices;
+            std::vector<glm::vec3> facePositions; // Face positions to calculate normals if any are missing
             std::string vert;
+
             while (ss >> vert) {
                 FaceVertex fv;
                 std::replace(vert.begin(), vert.end(), '/', ' ');
                 std::stringstream tok(vert);
                 tok >> fv.v >> fv.vt >> fv.vn;
 
-                glm::vec3 pos = positions[fv.v - 1];
-                glm::vec3 normal = fv.vn > 0 ? normals[fv.vn - 1] : glm::vec3(0, 1, 0);
-                glm::vec2 uv = fv.vt > 0 ? texcoords[fv.vt - 1] : glm::normalize(
-                    glm::cross(
-                        positions[fv.v - 1] - positions[0],
-                        positions[(fv.v % positions.size())] - positions[0]
-                    )
-                );
+                // Positions
+                glm::vec3 pos = (fv.v > 0 && fv.v <= (int)positions.size()) ? positions[fv.v - 1] : glm::vec3(0.0f);
+                facePositions.push_back(pos);
 
-                Vertex vertex;
-                vertex.point = pos;
-                vertex.normal = normal;
-                vertex.texture = uv;
-                faceVertices.push_back(vertex);
+                // Normal
+                glm::vec3 normal(0.0f);
+                if (fv.vn > 0 && fv.vn <= (int)normals.size()) {
+                    normal = normals[fv.vn - 1];
+                }
+
+                // Texture
+                glm::vec2 uv = (fv.vt > 0 && fv.vt <= (int)texcoords.size()) ? texcoords[fv.vt - 1] : glm::vec2(0.0f);
+
+                faceVertices.push_back({pos, normal, uv});
             }
+
+            // Compute fallback face normal if any vertex has missing normal
+            bool needFallback = false;
+            for (const auto &v : faceVertices) {
+                if (glm::length(v.normal) < 1e-6f) {
+                    needFallback = true;
+                    break;
+                }
+            }
+            if (needFallback && facePositions.size() >= 3) {
+                glm::vec3 edge1 = facePositions[1] - facePositions[0];
+                glm::vec3 edge2 = facePositions[2] - facePositions[0];
+                glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
+
+                for (auto &v : faceVertices) {
+                    if (glm::length(v.normal) < 1e-6f) {
+                        v.normal = faceNormal;
+                    }
+                }
+            }
+
+            // Triangulate face
             auto tris = triangulateFace(faceVertices);
             faces.push_back({tris, currentMaterial});
         }
