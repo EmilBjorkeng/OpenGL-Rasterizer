@@ -72,8 +72,32 @@ int main() {
     std::vector<Object*> sceneObjects;
     std::vector<Light> sceneLights;
 
+    auto light = [&Shader, &sceneLights, &sceneObjects](glm::vec3 Pos, glm::vec3 Color, float Intensity) {
+        sceneObjects.push_back(new Object("assets/Light.obj", &Shader));
+        sceneObjects.back()->position = Pos;
+        sceneObjects.back()->scale = glm::vec3(0.5f);
+        sceneObjects.back()->useLighting = false;
+        sceneLights.push_back({Pos, Color, Intensity});
+
+        // Change the color of the light
+        size_t stride = 13;
+        size_t diffuseOffset = 9;
+        auto& verts = sceneObjects.back()->vertices;
+        for (size_t i = 0; i < verts.size(); i += stride) {
+            verts[i + diffuseOffset + 0] = Color.r;
+            verts[i + diffuseOffset + 1] = Color.g;
+            verts[i + diffuseOffset + 2] = Color.b;
+        }
+        // Re-upload the vertex data
+        glBindBuffer(GL_ARRAY_BUFFER, sceneObjects.back()->VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+            sceneObjects.back()->vertices.size() * sizeof(float),
+            sceneObjects.back()->vertices.data());
+    };
+
     Object WorldAxis("assets/WorldAxis.obj", &Shader);
     WorldAxis.scale = glm::vec3(0.2f);
+    WorldAxis.useLighting = false;
     sceneObjects.push_back(&WorldAxis);
 
     Object Cube("assets/Cube.obj", &Shader);
@@ -82,19 +106,14 @@ int main() {
     Cube.scale = glm::vec3(0.5f);
     sceneObjects.push_back(&Cube);
 
-    sceneLights.push_back({glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f});
+    light(glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f);
 
     Object Monkey("assets/Monkey.obj", &Shader);
     Monkey.position = glm::vec3(5.0f,  0.0f,  -7.0f);
     Monkey.scale = glm::vec3(0.8f);
     sceneObjects.push_back(&Monkey);
 
-    glm::vec3 LightPos = glm::vec3(5.0f, -1.0f, -6.0f);
-    Object LightCube("assets/Cube.obj", &Shader);
-    LightCube.position = LightPos;
-    LightCube.scale = glm::vec3(0.1f);
-    //sceneObjects.push_back(&LightCube);
-    sceneLights.push_back({LightPos, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f});
+    light(glm::vec3(5.0f, -1.0f, -6.0f), glm::vec3(0.0f, 1.0f, 0.0f), 1.0f);
 
     double lastTime = glfwGetTime();
     double DeltaTime = 0.0;
@@ -110,6 +129,7 @@ int main() {
 
         float moveSpeed = 2.0f;
         float turnSpeed = 60.0f;
+        float lerpSpeed = 5.0f;
         float angle = glm::radians(turnSpeed * DeltaTime);
         glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 
@@ -153,7 +173,8 @@ int main() {
         // Reset Roll
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             glm::mat4 lookAtMat = glm::lookAt(glm::vec3(0.0f), camera.Forward(), worldUp);
-            camera.rotation = glm::quat_cast(glm::inverse(lookAtMat));
+            glm::quat targetRotation = glm::quat_cast(glm::inverse(lookAtMat));
+            camera.rotation = glm::slerp(camera.rotation, targetRotation, static_cast<float>(lerpSpeed * DeltaTime));
         }
 
         camera.rotation = glm::normalize(camera.rotation);

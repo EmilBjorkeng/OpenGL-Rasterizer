@@ -7,7 +7,7 @@
 class Material {
 public:
     std::string name;
-    glm::vec3 diffuseColor = {0.8f, 0.8f, 0.8f};
+    glm::vec3 diffuseColor = glm::vec3(0.8f);
     float opacity = 1.0f;
     unsigned int diffuseTexture = 0;
 

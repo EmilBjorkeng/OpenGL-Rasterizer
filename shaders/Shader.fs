@@ -35,9 +35,9 @@ void main()
         alpha *= texColor.a;
     }
 
-    // Light
-    vec3 diffuse = vec3(0.0);
+    vec3 finalColor;
     if (useLighting) {
+        vec3 diffuse = vec3(0.0);
         vec3 norm = normalize(Normal);
 
         for (int i = 0; i < numLights; ++i) {
@@ -47,14 +47,18 @@ void main()
             // Distance attenuation
             float distance = length(lightPositions[i] - FragPos);
             if (distance < 1e-6) distance = 1e-6;
-            float attenuation = 1.0 / (distance * distance);
+            float attenuation = 1.0 / max(distance * distance, 1e-6);
 
-            diffuse += color * lightColors[i] * lightIntensities[i] * ndotl * attenuation;
+            diffuse += lightColors[i] * lightIntensities[i] * ndotl * attenuation;
         }
+        diffuse *= color;
+
+        vec3 ambient = color * ambientLightColor * ambientLight;
+        finalColor = diffuse + ambient;
+    } else {
+        // Fullbright
+        finalColor = color;
     }
 
-    vec3 ambient = color * ambientLightColor * ambientLight;
-    vec3 finalColor = diffuse + ambient;
-
-    FragColor = vec4(clamp(finalColor, 0.0, 1.0), Opacity);
+    FragColor = vec4(clamp(finalColor, 0.0, 1.0), alpha);
 }

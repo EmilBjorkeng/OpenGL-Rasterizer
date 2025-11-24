@@ -34,9 +34,9 @@ Object::Object(const char* path, const Shader* shader) {
 
             vertices.push_back(texIndex);
 
-            vertices.push_back(face.material.diffuseColor.x);
-            vertices.push_back(face.material.diffuseColor.y);
-            vertices.push_back(face.material.diffuseColor.z);
+            vertices.push_back(face.material.diffuseColor.r);
+            vertices.push_back(face.material.diffuseColor.g);
+            vertices.push_back(face.material.diffuseColor.b);
 
             vertices.push_back(face.material.opacity);
         }
@@ -102,12 +102,14 @@ void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<
     shader->setIntArray("textures", texUnits);
 
     // Lighting
-    shader->setBool("useLighting", true);
-    shader->setInt("numLights", lights.size());
-    for (int i = 0; i < (int)lights.size(); ++i) {
-        shader->setVec3("lightPositions[" + std::to_string(i) + "]", lights[i].position);
-        shader->setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
-        shader->setFloat("lightIntensities[" + std::to_string(i) + "]", lights[i].intensity);
+    shader->setBool("useLighting", useLighting);
+    if (useLighting) {
+        shader->setInt("numLights", lights.size());
+        for (int i = 0; i < (int)lights.size(); ++i) {
+            shader->setVec3("lightPositions[" + std::to_string(i) + "]", lights[i].position);
+            shader->setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
+            shader->setFloat("lightIntensities[" + std::to_string(i) + "]", lights[i].intensity);
+        }
     }
     shader->setVec3("ambientLightColor", glm::vec3(1.0f));
     shader->setFloat("ambientLight", 0.1f);

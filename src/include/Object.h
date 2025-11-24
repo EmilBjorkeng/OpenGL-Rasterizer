@@ -18,6 +18,8 @@ public:
     glm::vec3 rotation = glm::vec3(0.0f);
     glm::vec3 scale = glm::vec3(1.0f);
 
+    bool useLighting = true;
+
     Object(const char* path, const Shader* shader);
     void draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light> &sceneLight);
 };
