@@ -29,7 +29,7 @@ all: $(TARGET)
 	$(CC) $(CXXFLAGS) $(PKG_CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJ)
-	$(CC) $(CXXFLAGS) $(PKG_LDFLAGS) $^ -o $@$(EXE)
+	$(CC) $(CXXFLAGS) $^ -o $@$(EXE) $(PKG_LDFLAGS)
 
 clean:
 	$(RM) $(TARGET)$(EXE)
