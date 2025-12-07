@@ -18,8 +18,7 @@ flat out int TexID;
 flat out vec3 DiffuseColor;
 flat out float Opacity;
 
-void main()
-{
+void main() {
     // Transform the vertex into clip space
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 

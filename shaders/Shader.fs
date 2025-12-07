@@ -18,17 +18,38 @@ uniform vec3 lightPositions[MAX_LIGHTS];
 uniform vec3 lightColors[MAX_LIGHTS];
 uniform float lightIntensities[MAX_LIGHTS];
 
+uniform float lightFarPlanes[MAX_LIGHTS];
+uniform samplerCube depthMaps[MAX_LIGHTS];
+
 uniform float ambientLight;
 uniform vec3 ambientLightColor;
 
 out vec4 FragColor;
 
-void main()
-{
+float ShadowCalculation(vec3 fragPos, int lightIndex) {
+    vec3 fragToLight = fragPos - lightPositions[lightIndex];
+
+    float closestDepth = texture(depthMaps[lightIndex], fragToLight).r;
+    closestDepth *= lightFarPlanes[lightIndex];
+
+    float currentDepth = length(fragToLight);
+
+    vec3 normal = normalize(Normal);
+    vec3 lightDir = normalize(lightPositions[lightIndex] - fragPos);
+    float cosTheta = max(dot(normal, lightDir), 0.0);
+    float bias = 0.005 + 0.05 * (1.0 - cosTheta);
+
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+    return shadow;
+}
+
+void main() {
+    // Base color and alpha
     vec3 color = DiffuseColor;
     float alpha = Opacity;
 
-    // Texture
+    // Apply texture if available
     if (TexID >= 0) {
         vec4 texColor = texture(textures[TexID], TexCoord);
         color *= texColor.rgb;
@@ -49,13 +70,16 @@ void main()
             if (distance < 1e-6) distance = 1e-6;
             float attenuation = 1.0 / max(distance * distance, 1e-6);
 
-            diffuse += lightColors[i] * lightIntensities[i] * ndotl * attenuation;
+            float shadow = ShadowCalculation(FragPos, i);
+            diffuse += lightColors[i] * lightIntensities[i] * ndotl * attenuation * (1.0 - shadow);
+            //diffuse += lightColors[i] * lightIntensities[i] * ndotl * attenuation;
         }
         diffuse *= color;
 
         vec3 ambient = color * ambientLightColor * ambientLight;
         finalColor = diffuse + ambient;
-    } else {
+    }
+    else {
         // Fullbright
         finalColor = color;
     }

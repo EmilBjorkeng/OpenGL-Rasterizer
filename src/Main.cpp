@@ -59,9 +59,7 @@ int main() {
 
     // Configure global opengl state
     glEnable(GL_DEPTH_TEST);
-
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
     Camera camera(glm::vec3(0.5f, 0.5f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f));
@@ -70,22 +68,23 @@ int main() {
             camera.nearPlane, camera.farPlane);
     glfwSetWindowUserPointer(window, &camera);
 
-    Shader Shader("shaders/Shader.vs", "shaders/Shader.fs");
+    Shader shader("shaders/Shader.vs", "shaders/Shader.fs");
+    Shader shadowShader("shaders/Shadow.vs", "shaders/Shadow.fs", "shaders/Shadow.gs");
+
     std::vector<Object*> sceneObjects;
     std::vector<Light> sceneLights;
 
-    auto light = [&Shader, &sceneLights, &sceneObjects](glm::vec3 Pos, glm::vec3 Color, float Intensity) {
-        sceneObjects.push_back(new Object("assets/Light.obj", &Shader));
+    auto light = [&shader, &shadowShader, &sceneLights, &sceneObjects](glm::vec3 Pos, glm::vec3 Color, float Intensity) {
+        sceneObjects.push_back(new Object("assets/Light.obj", &shader));
         sceneObjects.back()->position = Pos;
-        sceneObjects.back()->scale = glm::vec3(0.5f);
+        sceneObjects.back()->scale = glm::vec3(0.2f);
         sceneObjects.back()->useLighting = false;
-        sceneLights.push_back({Pos, Color, Intensity});
+        sceneLights.push_back({Pos, Color, Intensity, &shadowShader});
 
         // Change the color of the light
-        size_t stride = 13;
         size_t diffuseOffset = 9;
         auto& verts = sceneObjects.back()->vertices;
-        for (size_t i = 0; i < verts.size(); i += stride) {
+        for (size_t i = 0; i < verts.size(); i += OBJECT_STRIDE) {
             verts[i + diffuseOffset + 0] = Color.r;
             verts[i + diffuseOffset + 1] = Color.g;
             verts[i + diffuseOffset + 2] = Color.b;
@@ -97,32 +96,32 @@ int main() {
             sceneObjects.back()->vertices.data());
     };
 
-    Object WorldAxis("assets/WorldAxis.obj", &Shader);
+    Object WorldAxis("assets/WorldAxis.obj", &shader);
     WorldAxis.scale = glm::vec3(0.2f);
     WorldAxis.useLighting = false;
     sceneObjects.push_back(&WorldAxis);
 
-    Object Cube("assets/Cube.obj", &Shader);
+    Object Cube("assets/Cube.obj", &shader);
     Cube.position = glm::vec3(-3.0f,  -0.5f,  -5.0f);
     Cube.rotation = glm::vec3(20.0f, 15.0f, 0.0f);
     Cube.scale = glm::vec3(0.5f);
     sceneObjects.push_back(&Cube);
 
-    light(glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 4.0f);
+    light(glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 5.0f);
 
-    Object Monkey("assets/Monkey.obj", &Shader);
+    Object Monkey("assets/Monkey.obj", &shader);
     Monkey.position = glm::vec3(5.0f,  0.0f,  -7.0f);
     Monkey.scale = glm::vec3(0.8f);
     sceneObjects.push_back(&Monkey);
 
-    light(glm::vec3(5.0f, -1.0f, -6.0f), glm::vec3(0.0f, 1.0f, 0.0f), 1.0f);
+    light(glm::vec3(5.0f, 0.0f, -6.0f), glm::vec3(1.0f, 1.0f, 1.0f), 5.0f);
 
-    Object AlphaCube("assets/AlphaCube.obj", &Shader);
+    Object AlphaCube("assets/AlphaCube.obj", &shader);
     AlphaCube.position = glm::vec3(0.5f, 0.5f, -5.0f);
     AlphaCube.scale = glm::vec3(0.3f);
     sceneObjects.push_back(&AlphaCube);
 
-    Object Dragon("assets/Dragon.obj", &Shader);
+    Object Dragon("assets/Dragon.obj", &shader);
     Dragon.position = glm::vec3(-1.0f, -2.0f, -10.0f);
     sceneObjects.push_back(&Dragon);
 
@@ -211,18 +210,29 @@ int main() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Shadow map
+        glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+        glCullFace(GL_FRONT);
+        for (Light &light : sceneLights) {
+            light.renderShadowMap(sceneObjects);
+        }
+        glCullFace(GL_BACK);
+
+        glViewport(0, 0, window_width, window_height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = camera.projectionMatrix;
 
         // Draw opaque objects
-        for (Object* obj : opaqueObjects) {
-            obj->draw(view, projection, sceneLights);
+        for (Object *object : opaqueObjects) {
+            object->draw(view, projection, sceneLights);
         }
 
         // Sort translucent objects back to front
         glm::vec3 camPos = camera.position;
         std::sort(transparentObjects.begin(), transparentObjects.end(),
-            [camPos](Object* a, Object* b) {
+            [camPos](Object *a, Object *b) {
                 float distA = glm::length(camPos - a->position);
                 float distB = glm::length(camPos - b->position);
                 return distA > distB; // Farthest first
@@ -234,8 +244,8 @@ int main() {
         glDepthMask(GL_FALSE);
 
         // Draw translucent objects
-        for (Object* obj : transparentObjects) {
-            obj->draw(view, projection, sceneLights);
+        for (Object *object : transparentObjects) {
+            object->draw(view, projection, sceneLights);
         }
 
         glDepthMask(GL_TRUE);
