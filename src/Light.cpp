@@ -27,6 +27,41 @@ Light::Light(glm::vec3 position, glm::vec3 color, float intensity, const Shader 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+Light::~Light() {
+    if (depthMapFBO != 0) {
+        glDeleteFramebuffers(1, &depthMapFBO);
+    }
+    if (depthCubemap != 0) {
+        glDeleteTextures(1, &depthCubemap);
+    }
+}
+
+Light::Light(Light&& other) noexcept
+    : position(other.position), color(other.color), intensity(other.intensity),
+        shader(other.shader), depthMapFBO(other.depthMapFBO),
+        depthCubemap(other.depthCubemap) {
+    other.depthMapFBO = 0;
+    other.depthCubemap = 0;
+}
+
+Light& Light::operator=(Light&& other) noexcept {
+    if (this != &other) {
+        if (depthMapFBO != 0) glDeleteFramebuffers(1, &depthMapFBO);
+        if (depthCubemap != 0) glDeleteTextures(1, &depthCubemap);
+
+        position = other.position;
+        color = other.color;
+        intensity = other.intensity;
+        shader = other.shader;
+        depthMapFBO = other.depthMapFBO;
+        depthCubemap = other.depthCubemap;
+
+        other.depthMapFBO = 0;
+        other.depthCubemap = 0;
+    }
+    return *this;
+}
+
 void Light::renderShadowMap(const std::vector<Object*> &objects) {
     // Create depth cubemap transformation matrices
     glm::mat4 shadowProjection = glm::perspective(glm::radians(90.0f),

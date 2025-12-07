@@ -18,7 +18,7 @@ struct Face {
 
 class OBJLoader {
 public:
-    static std::vector<Face> loadOBJ(const std::string& path);
+    static std::vector<Face> loadOBJ(const std::string &path);
 };
 
 #endif

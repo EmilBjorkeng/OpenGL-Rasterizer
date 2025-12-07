@@ -23,6 +23,16 @@ public:
     unsigned int depthCubemap = 0;
 
     Light(glm::vec3 position, glm::vec3 color, float intensity, const Shader *shader);
+    ~Light();
+
+    // Remove copying
+    Light(const Light&) = delete;
+    Light& operator=(const Light&) = delete;
+
+    // Allow moving
+    Light(Light&& other) noexcept;
+    Light& operator=(Light&& other) noexcept;
+
     void renderShadowMap(const std::vector<Object*> &sceneObjects);
 };
 

@@ -6,6 +6,7 @@
 
 #include "Shader.h"
 #include "Object.h"
+#include "TextureManager.h"
 #include "Camera.h"
 #include "Light.h"
 #include "MapLoader.h"

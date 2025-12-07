@@ -11,6 +11,16 @@ public:
     float opacity = 1.0f;
     unsigned int diffuseTexture = 0;
 
+    Material() = default;
+
+    // Allow copying
+    Material(const Material&) = default;
+    Material& operator=(const Material&) = default;
+
+    // Allow moving
+    Material(Material&&) = default;
+    Material& operator=(Material&&) = default;
+
     bool loadMTL(const std::string& path, const std::string &materialName);
 };
 

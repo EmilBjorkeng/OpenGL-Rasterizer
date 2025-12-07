@@ -76,6 +76,52 @@ Object::Object(const std::string &path, const Shader *shader)
     glBindVertexArray(0);
 }
 
+Object::~Object() {
+    if (VAO != 0) {
+        glDeleteVertexArrays(1, &VAO);
+    }
+    if (VBO != 0) {
+        glDeleteBuffers(1, &VBO);
+    }
+}
+
+Object::Object(Object&& other) noexcept
+    : shader(other.shader), VAO(other.VAO), VBO(other.VBO),
+      hasTransparency(other.hasTransparency),
+      vertices(std::move(other.vertices)),
+      textures(std::move(other.textures)),
+      position(other.position), rotation(other.rotation),
+      scale(other.scale), useLighting(other.useLighting) {
+    other.VAO = 0;
+    other.VBO = 0;
+}
+
+Object& Object::operator=(Object&& other) noexcept {
+    if (this != &other) {
+        if (VAO != 0) glDeleteVertexArrays(1, &VAO);
+        if (VBO != 0) glDeleteBuffers(1, &VBO);
+        for (auto tex : textures) {
+            if (tex != 0) glDeleteTextures(1, &tex);
+        }
+
+        shader = other.shader;
+        VAO = other.VAO;
+        VBO = other.VBO;
+        hasTransparency = other.hasTransparency;
+        vertices = std::move(other.vertices);
+        textures = std::move(other.textures);
+        position = other.position;
+        rotation = other.rotation;
+        scale = other.scale;
+        useLighting = other.useLighting;
+
+        other.VAO = 0;
+        other.VBO = 0;
+    }
+
+    return *this;
+}
+
 // Construct model matrix
 glm::mat4 Object::GetModelMatrix() {
     glm::mat4 model = glm::mat4(1.0f);
