@@ -8,6 +8,7 @@
 #include "Object.h"
 #include "Camera.h"
 #include "Light.h"
+#include "MapLoader.h"
 
 #include <iostream>
 #include <algorithm>
@@ -71,71 +72,12 @@ int main() {
     Shader shader("shaders/Shader.vs", "shaders/Shader.fs");
     Shader shadowShader("shaders/Shadow.vs", "shaders/Shadow.fs", "shaders/Shadow.gs");
 
-    std::vector<Object*> sceneObjects;
-    std::vector<Light> sceneLights;
+    Scene map = MAPLoader::loadMAP("maps/map.map", shader, shadowShader);
 
-    auto light = [&shader, &shadowShader, &sceneLights, &sceneObjects](glm::vec3 Pos, glm::vec3 Color, float Intensity) {
-        sceneObjects.push_back(new Object("assets/Light.obj", &shader));
-        sceneObjects.back()->position = Pos;
-        sceneObjects.back()->scale = glm::vec3(0.2f);
-        sceneObjects.back()->useLighting = false;
-        sceneLights.push_back({Pos, Color, Intensity, &shadowShader});
-
-        // Change the color of the light
-        size_t diffuseOffset = 9;
-        auto& verts = sceneObjects.back()->vertices;
-        for (size_t i = 0; i < verts.size(); i += OBJECT_STRIDE) {
-            verts[i + diffuseOffset + 0] = Color.r;
-            verts[i + diffuseOffset + 1] = Color.g;
-            verts[i + diffuseOffset + 2] = Color.b;
-        }
-        // Re-upload the vertex data
-        glBindBuffer(GL_ARRAY_BUFFER, sceneObjects.back()->VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-            sceneObjects.back()->vertices.size() * sizeof(float),
-            sceneObjects.back()->vertices.data());
-    };
-
-    Object WorldAxis("assets/WorldAxis.obj", &shader);
-    WorldAxis.scale = glm::vec3(0.2f);
-    WorldAxis.useLighting = false;
-    sceneObjects.push_back(&WorldAxis);
-
-    Object Cube("assets/Cube.obj", &shader);
-    Cube.position = glm::vec3(-3.0f,  -0.5f,  -5.0f);
-    Cube.rotation = glm::vec3(20.0f, 15.0f, 0.0f);
-    Cube.scale = glm::vec3(0.5f);
-    sceneObjects.push_back(&Cube);
-
-    light(glm::vec3(-1.5f,  0.0f,  -4.0f), glm::vec3(0.0f, 0.0f, 1.0f), 5.0f);
-
-    Object Monkey("assets/Monkey.obj", &shader);
-    Monkey.position = glm::vec3(5.0f,  0.0f,  -7.0f);
-    Monkey.scale = glm::vec3(0.8f);
-    sceneObjects.push_back(&Monkey);
-
-    light(glm::vec3(5.0f, 0.0f, -6.0f), glm::vec3(1.0f, 1.0f, 1.0f), 5.0f);
-
-    Object AlphaCube("assets/AlphaCube.obj", &shader);
-    AlphaCube.position = glm::vec3(0.5f, 0.5f, -5.0f);
-    AlphaCube.scale = glm::vec3(0.3f);
-    sceneObjects.push_back(&AlphaCube);
-
-    Object Dragon("assets/Dragon.obj", &shader);
-    Dragon.position = glm::vec3(-1.0f, -2.0f, -10.0f);
-    sceneObjects.push_back(&Dragon);
-
-    light(glm::vec3(-1.0f, -1.0f, -9.0f), glm::vec3(1.0f, 1.0f, 1.0f), 1.0f);
-
-    std::vector<Object*> opaqueObjects;
-    std::vector<Object*> transparentObjects;
-    for (Object* obj : sceneObjects) {
-        if (obj->hasTransparency) {
-            transparentObjects.push_back(obj);
-        } else {
-            opaqueObjects.push_back(obj);
-        }
-    }
+    std::vector<Object*> &sceneObjects       = map.sceneObjects;
+    std::vector<Light*>  &sceneLights        = map.sceneLights;
+    std::vector<Object*> &opaqueObjects      = map.opaqueObjects;
+    std::vector<Object*> &transparentObjects = map.transparentObjects;
 
     double lastTime = glfwGetTime();
     double DeltaTime = 0.0;
@@ -213,8 +155,8 @@ int main() {
         // Shadow map
         glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
         glCullFace(GL_FRONT);
-        for (Light &light : sceneLights) {
-            light.renderShadowMap(sceneObjects);
+        for (Light *light : sceneLights) {
+            light->renderShadowMap(sceneObjects);
         }
         glCullFace(GL_BACK);
 

@@ -1,0 +1,11 @@
+#      Path                            PX    PY    PZ       RX    RY    RZ       SX    SY    SZ      USELIGHT
+OBJECT assets/WorldAxis.obj,           0.0   0.0   0.0,     0.0   0.0   0.0      0.2   0.2   0.2,    0
+OBJECT assets/Cube.obj,               -3.0  -0.5  -5.0,    20.0  15.0   0.0,     0.5   0.5   0.5,    1
+OBJECT assets/Monkey.obj,              5.0   0.0  -7.0,     0.0   0.0   0.0,     0.8   0.8   0.8,    1
+OBJECT assets/AlphaCube.obj,           0.5   0.5  -5.0,     0.0   0.0   0.0,     0.3   0.3   0.3,    1
+OBJECT assets/Dragon.obj,             -1.0  -2.0 -10.0,     0.0   0.0   0.0,     1.0   1.0   1.0,    1
+
+#         PX    PY    PZ       R    G    B       INTENSITY
+LIGHT     5.0   0.0  -6.0,    1.0  1.0  1.0,     5.0
+LIGHT    -1.5   0.0  -4.0,    0.0  0.0  1.0,    10.0
+LIGHT    -1.0   1.0  -9.0,    0.0  1.0  1.0,     1.0

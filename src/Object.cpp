@@ -2,7 +2,7 @@
 #include "OBJLoader.h"
 #include <algorithm>
 
-Object::Object(const char *path, const Shader *shader)
+Object::Object(const std::string &path, const Shader *shader)
 : shader(shader) {
     std::vector<Face> faces = OBJLoader::loadOBJ(path);
 
@@ -88,7 +88,7 @@ glm::mat4 Object::GetModelMatrix() {
     return model;
 }
 
-void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light> &lights) {
+void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light*> &lights) {
     if (!shader) return;
 
     glm::mat4 model = GetModelMatrix();
@@ -115,7 +115,7 @@ void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<
     // Bind shadow cubemaps
     for (int i = 0; i < (int)lights.size(); ++i) {
         glActiveTexture(GL_TEXTURE0 + textureUnit);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, lights[i].depthCubemap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, lights[i]->depthCubemap);
         shader->setInt("depthMaps[" + std::to_string(i) + "]", textureUnit);
         textureUnit++;
     }
@@ -125,9 +125,9 @@ void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<
     if (useLighting) {
         shader->setInt("numLights", lights.size());
         for (int i = 0; i < (int)lights.size(); ++i) {
-            shader->setVec3("lightPositions[" + std::to_string(i) + "]", lights[i].position);
-            shader->setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
-            shader->setFloat("lightIntensities[" + std::to_string(i) + "]", lights[i].intensity);
+            shader->setVec3("lightPositions[" + std::to_string(i) + "]", lights[i]->position);
+            shader->setVec3("lightColors[" + std::to_string(i) + "]", lights[i]->color);
+            shader->setFloat("lightIntensities[" + std::to_string(i) + "]", lights[i]->intensity);
             shader->setFloat("lightFarPlanes[" + std::to_string(i) + "]", SHADOW_FAR_PLANE);
         }
     }

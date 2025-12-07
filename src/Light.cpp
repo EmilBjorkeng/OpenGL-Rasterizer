@@ -2,7 +2,7 @@
 #include "Object.h"
 #include <glad/gl.h>
 
-Light::Light(glm::vec3 position, glm::vec3 color, float intensity, Shader *shader)
+Light::Light(glm::vec3 position, glm::vec3 color, float intensity, const Shader *shader)
 : position(position), color(color), intensity(intensity), shader(shader) {
     glGenTextures(1, &depthCubemap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
@@ -27,7 +27,7 @@ Light::Light(glm::vec3 position, glm::vec3 color, float intensity, Shader *shade
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Light::renderShadowMap(const std::vector<Object*>& objects) {
+void Light::renderShadowMap(const std::vector<Object*> &objects) {
     // Create depth cubemap transformation matrices
     glm::mat4 shadowProjection = glm::perspective(glm::radians(90.0f),
         (float)SHADOW_MAP_SIZE / (float)SHADOW_MAP_SIZE, SHADOW_NEAR_PLANE, SHADOW_FAR_PLANE);
