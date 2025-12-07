@@ -144,8 +144,7 @@ int main() {
             glm::quat targetRotation = glm::quat_cast(glm::inverse(lookAtMat));
             camera.rotation = glm::slerp(camera.rotation, targetRotation, static_cast<float>(lerpSpeed * DeltaTime));
         }
-
-        camera.rotation = glm::normalize(camera.rotation);
+        camera.clampRotation();
 
         // Logic
 

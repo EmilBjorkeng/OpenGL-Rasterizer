@@ -4,6 +4,7 @@
 
 Object::Object(const std::string &path, const Shader *shader)
 : shader(shader) {
+    textures.reserve(MAX_TEXTURES);
     std::vector<Face> faces = OBJLoader::loadOBJ(path);
 
     // Combine faces
@@ -123,7 +124,7 @@ Object& Object::operator=(Object&& other) noexcept {
 }
 
 // Construct model matrix
-glm::mat4 Object::GetModelMatrix() {
+glm::mat4 Object::GetModelMatrix() const noexcept {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, position);
     model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -134,7 +135,7 @@ glm::mat4 Object::GetModelMatrix() {
     return model;
 }
 
-void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light*> &lights) {
+void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light*> &lights) const {
     if (!shader) return;
 
     glm::mat4 model = GetModelMatrix();

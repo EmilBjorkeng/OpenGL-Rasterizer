@@ -7,23 +7,23 @@
 
 class Object;
 
-const size_t MAX_LIGHTS = 16;
-const unsigned int SHADOW_MAP_SIZE = 1024;
-const float SHADOW_NEAR_PLANE = 0.001f;
-const float SHADOW_FAR_PLANE  = 100.0f; // TODO calculate based on light intensity
+constexpr size_t MAX_LIGHTS = 16;
+constexpr unsigned int SHADOW_MAP_SIZE = 1024;
+constexpr float SHADOW_NEAR_PLANE = 0.001f;
+constexpr float SHADOW_FAR_PLANE  = 100.0f; // TODO calculate based on light intensity
 
 class Light {
 public:
-    glm::vec3 position;
-    glm::vec3 color;
-    float intensity;
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec3 color = glm::vec3(0.0f);
+    float intensity = 1.0f;
 
     const Shader *shader = nullptr;
     unsigned int depthMapFBO = 0;
     unsigned int depthCubemap = 0;
 
     Light(glm::vec3 position, glm::vec3 color, float intensity, const Shader *shader);
-    ~Light();
+    ~Light() noexcept;
 
     // Remove copying
     Light(const Light&) = delete;

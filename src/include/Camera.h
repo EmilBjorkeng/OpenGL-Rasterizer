@@ -9,8 +9,8 @@
 
 class Camera {
 public:
-    glm::vec3 position{0.0f, 0.0f, 0.0f};
-    glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
     glm::mat4 projectionMatrix = glm::mat4(1.0f);
     float fov = 90.0f;
     float nearPlane = 0.1f;
@@ -20,25 +20,27 @@ public:
     float turnSpeed = 60.0f;
     float sensitivity = 0.0025f;
 
-    Camera() = default;
-
+    Camera() noexcept;
     // Constructor with position and quaternion
-    Camera(const glm::vec3& initPosition, const glm::quat& initRotation)
-        : position(initPosition), rotation(initRotation) {}
-
+    Camera(const glm::vec3& initPosition, const glm::quat& initRotation) noexcept;
     // Constructor with position and Euler angles (pitch, yaw, roll)
-    Camera(const glm::vec3& initPosition, const glm::vec3& eulerAngles)
-        : position(initPosition), rotation(glm::quat(glm::radians(eulerAngles))) {}
+    Camera(const glm::vec3& initPosition, const glm::vec3& eulerAngles) noexcept;
 
-    glm::vec3 Forward() const { return rotation * glm::vec3(0.0f, 0.0f, -1.0f); }
-    glm::vec3 Right()   const { return rotation * glm::vec3(1.0f, 0.0f, 0.0f); }
-    glm::vec3 Up()      const { return rotation * glm::vec3(0.0f, 1.0f, 0.0f); }
+    // Allow copying
+    Camera(const Camera&) = default;
+    Camera& operator=(const Camera&) = default;
 
-    glm::mat4 GetViewMatrix() const {
-        glm::mat4 rotMat = glm::toMat4(glm::inverse(rotation));
-        glm::mat4 transMat = glm::translate(glm::mat4(1.0f), -position);
-        return rotMat * transMat;
-    }
+    // Allow moving
+    Camera(Camera&&) = default;
+    Camera& operator=(Camera&&) = default;
+
+    glm::vec3 Forward() const noexcept;
+    glm::vec3 Right()   const noexcept;
+    glm::vec3 Up()      const noexcept;
+
+    void clampRotation() noexcept;
+    [[nodiscard]]
+    glm::mat4 GetViewMatrix() const noexcept;
 };
 
 #endif

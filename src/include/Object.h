@@ -25,7 +25,7 @@ public:
     bool useLighting = true;
 
     Object(const std::string &path, const Shader *shader);
-    ~Object();
+    ~Object() noexcept;
 
     // Remove copying
     Object(const Object&) = delete;
@@ -35,8 +35,8 @@ public:
     Object(Object&& other) noexcept;
     Object& operator=(Object&& other) noexcept;
 
-    glm::mat4 GetModelMatrix();
-    void draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light*> &sceneLight);
+    glm::mat4 GetModelMatrix() const noexcept;
+    void draw(const glm::mat4 view, const glm::mat4 projection, std::vector<Light*> &sceneLight) const;
 };
 
 #endif

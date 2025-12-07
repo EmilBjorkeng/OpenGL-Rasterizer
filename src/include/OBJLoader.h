@@ -18,6 +18,7 @@ struct Face {
 
 class OBJLoader {
 public:
+    [[nodiscard]]
     static std::vector<Face> loadOBJ(const std::string &path);
 };
 

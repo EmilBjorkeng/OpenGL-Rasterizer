@@ -30,6 +30,7 @@ struct Scene {
 
 class MAPLoader {
 public:
+    [[nodiscard]]
     static Scene loadMAP(const std::string &path, const Shader &shader, const Shader &shadowShader);
 };
 
