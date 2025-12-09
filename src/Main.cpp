@@ -153,12 +153,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Shadow map
-        glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-        glCullFace(GL_FRONT);
         for (Light *light : sceneLights) {
             light->renderShadowMap(sceneObjects);
         }
-        glCullFace(GL_BACK);
 
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

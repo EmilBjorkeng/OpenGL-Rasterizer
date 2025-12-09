@@ -175,7 +175,7 @@ void Object::draw(const glm::mat4 view, const glm::mat4 projection, std::vector<
             shader->setVec3("lightPositions[" + std::to_string(i) + "]", lights[i]->position);
             shader->setVec3("lightColors[" + std::to_string(i) + "]", lights[i]->color);
             shader->setFloat("lightIntensities[" + std::to_string(i) + "]", lights[i]->intensity);
-            shader->setFloat("lightFarPlanes[" + std::to_string(i) + "]", SHADOW_FAR_PLANE);
+            shader->setFloat("lightFarPlanes[" + std::to_string(i) + "]", lights[i]->shadowFarPlane);
         }
     }
     shader->setVec3("ambientLightColor", glm::vec3(1.0f));

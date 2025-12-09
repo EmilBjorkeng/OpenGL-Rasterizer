@@ -8,9 +8,8 @@
 class Object;
 
 constexpr size_t MAX_LIGHTS = 16;
-constexpr unsigned int SHADOW_MAP_SIZE = 1024;
-constexpr float SHADOW_NEAR_PLANE = 0.001f;
-constexpr float SHADOW_FAR_PLANE  = 100.0f; // TODO calculate based on light intensity
+constexpr float MIN_FAR_PLANE = 1.0f;
+constexpr float MAX_FAR_PLANE = 500.0f;
 
 class Light {
 public:
@@ -21,6 +20,10 @@ public:
     const Shader *shader = nullptr;
     unsigned int depthMapFBO = 0;
     unsigned int depthCubemap = 0;
+
+    static const unsigned int SHADOW_MAP_SIZE = 1024;
+    float shadowNearPlane = 0.01f;
+    float shadowFarPlane  = 100.0f;
 
     Light(glm::vec3 position, glm::vec3 color, float intensity, const Shader *shader);
     ~Light() noexcept;
@@ -33,6 +36,7 @@ public:
     Light(Light&& other) noexcept;
     Light& operator=(Light&& other) noexcept;
 
+    float calculateFarPlane() const;
     void renderShadowMap(const std::vector<Object*> &sceneObjects);
 };
 

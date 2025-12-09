@@ -25,6 +25,8 @@ Light::Light(glm::vec3 position, glm::vec3 color, float intensity, const Shader 
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    shadowFarPlane = calculateFarPlane();
 }
 
 Light::~Light() {
@@ -62,10 +64,21 @@ Light& Light::operator=(Light&& other) noexcept {
     return *this;
 }
 
+float Light::calculateFarPlane() const {
+    if (intensity < 1e-6f) {
+        return MIN_FAR_PLANE;
+    }
+
+    const float minIntensity = 1.0f / 256.0f;
+    float maxDistance = std::sqrt(intensity / minIntensity);
+
+    return glm::clamp(maxDistance, MIN_FAR_PLANE, MAX_FAR_PLANE);
+}
+
 void Light::renderShadowMap(const std::vector<Object*> &objects) {
     // Create depth cubemap transformation matrices
     glm::mat4 shadowProjection = glm::perspective(glm::radians(90.0f),
-        (float)SHADOW_MAP_SIZE / (float)SHADOW_MAP_SIZE, SHADOW_NEAR_PLANE, SHADOW_FAR_PLANE);
+        (float)SHADOW_MAP_SIZE / (float)SHADOW_MAP_SIZE, shadowNearPlane, shadowFarPlane);
 
     std::vector<glm::mat4> shadowTransforms;
     shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 1.0f,  0.0f,  0.0f) * 0.1f, glm::vec3(0.0f, -1.0f,  0.0f) * 0.1f));
@@ -76,18 +89,17 @@ void Light::renderShadowMap(const std::vector<Object*> &objects) {
     shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  0.0f, -1.0f) * 0.1f, glm::vec3(0.0f, -1.0f,  0.0f) * 0.1f));
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     shader->use();
     for (unsigned int i = 0; i < 6; ++i)
         shader->setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-    shader->setFloat("far_plane", SHADOW_FAR_PLANE);
+    shader->setFloat("far_plane", shadowFarPlane);
     shader->setVec3("lightPos", position);
 
     // Render scene to depth cubemap
     for (Object *object : objects) {
-        if (!object->useLighting) continue;
-
         shader->setMat4("model", object->GetModelMatrix());
 
         glBindVertexArray(object->VAO);
