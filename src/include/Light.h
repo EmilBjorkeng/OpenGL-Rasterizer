@@ -21,7 +21,7 @@ public:
     unsigned int depthMapFBO = 0;
     unsigned int depthCubemap = 0;
 
-    static const unsigned int SHADOW_MAP_SIZE = 1024;
+    static const unsigned int SHADOW_MAP_SIZE = 8192;
     float shadowNearPlane = 0.01f;
     float shadowFarPlane  = 100.0f;
 

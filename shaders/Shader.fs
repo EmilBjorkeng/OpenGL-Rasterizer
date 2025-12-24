@@ -66,13 +66,20 @@ void main() {
             float ndotl = max(dot(norm, lightDir), 0.0);
 
             // Distance attenuation
+            float constant = 1.0;
+            float linear = 0.09;
+            float quadratic = 0.032;
+
             float distance = length(lightPositions[i] - FragPos);
             if (distance < 1e-6) distance = 1e-6;
-            float attenuation = 1.0 / max(distance * distance, 1e-6);
+            float attenuation = 1.0 / max(
+                constant +
+                linear * distance +
+                quadratic * distance * distance,
+            1e-6);
 
             float shadow = ShadowCalculation(FragPos, i);
             diffuse += lightColors[i] * lightIntensities[i] * ndotl * attenuation * (1.0 - shadow);
-            //diffuse += lightColors[i] * lightIntensities[i] * ndotl * attenuation;
         }
         diffuse *= color;
 

@@ -81,12 +81,12 @@ void Light::renderShadowMap(const std::vector<Object*> &objects) {
         (float)SHADOW_MAP_SIZE / (float)SHADOW_MAP_SIZE, shadowNearPlane, shadowFarPlane);
 
     std::vector<glm::mat4> shadowTransforms;
-    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 1.0f,  0.0f,  0.0f) * 0.1f, glm::vec3(0.0f, -1.0f,  0.0f) * 0.1f));
-    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3(-1.0f,  0.0f,  0.0f) * 0.1f, glm::vec3(0.0f, -1.0f,  0.0f) * 0.1f));
-    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  1.0f,  0.0f) * 0.1f, glm::vec3(0.0f,  0.0f,  1.0f) * 0.1f));
-    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f, -1.0f,  0.0f) * 0.1f, glm::vec3(0.0f,  0.0f, -1.0f) * 0.1f));
-    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  0.0f,  1.0f) * 0.1f, glm::vec3(0.0f, -1.0f,  0.0f) * 0.1f));
-    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  0.0f, -1.0f) * 0.1f, glm::vec3(0.0f, -1.0f,  0.0f) * 0.1f));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(position, position + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
