@@ -14,8 +14,13 @@
 #include <iostream>
 #include <algorithm>
 
+struct CallbackData {
+    Camera *camera;
+};
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 #define WINDOW_TITLE "Title"
 int window_width = 1920;
@@ -41,6 +46,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // Load all OpenGL function pointers (glad)
     if (!gladLoadGL(glfwGetProcAddress))
@@ -68,7 +74,6 @@ int main() {
     camera.projectionMatrix = glm::perspective(
             glm::radians(45.0f), (float)window_width / (float)window_height,
             camera.nearPlane, camera.farPlane);
-    glfwSetWindowUserPointer(window, &camera);
 
     Shader shader("shaders/Shader.vs", "shaders/Shader.fs");
     Shader shadowShader("shaders/Shadow.vs", "shaders/Shadow.fs", "shaders/Shadow.gs");
@@ -82,6 +87,9 @@ int main() {
 
     double lastTime = glfwGetTime();
     double DeltaTime = 0.0;
+
+    CallbackData callbackData{ &camera };
+    glfwSetWindowUserPointer(window, &callbackData);
 
     while (!glfwWindowShouldClose(window)) {
         double currentTime = glfwGetTime();
@@ -199,10 +207,12 @@ int main() {
 
 // Callback for whenever the window size changed (by OS or user resize)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    auto* data = static_cast<CallbackData*>(glfwGetWindowUserPointer(window));
+    Camera* camera = data->camera;
+
     if (height == 0) height = 1;
     glViewport(0, 0, width, height);
 
-    Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
     camera->projectionMatrix = glm::perspective(
         glm::radians(45.0f), (float)width / (float)height,
         camera->nearPlane, camera->farPlane);
@@ -213,8 +223,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 // Callback for whenever the mouse is moved
 bool firstMouse = true;
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    auto* data = static_cast<CallbackData*>(glfwGetWindowUserPointer(window));
+    Camera* camera = data->camera;
+
     static double lastX = xpos, lastY = ypos;
 
     if (firstMouse)
@@ -232,7 +244,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
     // Apply rotation
     glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
-    Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
     camera->rotation = glm::angleAxis((float)-xoffset * camera->sensitivity, worldUp) * camera->rotation;
     camera->rotation = glm::angleAxis((float)yoffset * camera->sensitivity, glm::normalize(camera->Right())) * camera->rotation;
+}
+
+// Callback for whenever the scroll wheel is rotated
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    auto* data = static_cast<CallbackData*>(glfwGetWindowUserPointer(window));
 }
