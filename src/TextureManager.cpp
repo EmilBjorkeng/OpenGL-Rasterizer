@@ -5,6 +5,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
 
+inline bool file_exists (const std::string& path) {
+    if (FILE *file = fopen(path.c_str(), "r")) {
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
 TextureManager::~TextureManager() {
     unloadAll();
 }
@@ -16,14 +24,20 @@ unsigned int TextureManager::loadTexture(const std::string& path) {
         return it->second;
     }
 
+    if (!file_exists(path)) {
+        std::cerr << "Missing texture file: " << path << std::endl;
+        return 0;
+    }
+
     // Load new texture
     unsigned int textureID = loadTextureFromFile(path);
 
     if (textureID != 0) {
         textures[path] = textureID;
-        std::cout << "Loaded texture: " << path << " (ID: " << textureID << ")\n";
+        std::cout << "Loaded texture: " << path << " (ID: " << textureID << ")" << std::endl;
     } else {
-        std::cerr << "Failed to load texture: " << path << "\n";
+        std::cerr << "Failed to load texture: " << path << std::endl;
+        return 0;
     }
 
     return textureID;
@@ -31,14 +45,14 @@ unsigned int TextureManager::loadTexture(const std::string& path) {
 
 void TextureManager::registerTexture(const std::string& name, unsigned int textureID) {
     if (textureID == 0) {
-        std::cerr << "Warning: Attempting to register invalid texture ID 0\n";
+        std::cerr << "Warning: Attempting to register invalid texture ID 0" << std::endl;
         return;
     }
 
     // Check if name already exists
     auto it = textures.find(name);
     if (it != textures.end()) {
-        std::cerr << "Warning: Texture name '" << name << "' already exists. Overwriting.\n";
+        std::cerr << "Warning: Texture name '" << name << "' already exists. Overwriting." << std::endl;
         // Delete the old texture
         glDeleteTextures(1, &it->second);
     }
@@ -63,7 +77,7 @@ void TextureManager::unloadTexture(const std::string& path) {
     if (it != textures.end()) {
         glDeleteTextures(1, &it->second);
         textures.erase(it);
-        std::cout << "Unloaded texture: " << path << "\n";
+        std::cout << "Unloaded texture: " << path << std::endl;
     }
 }
 
@@ -97,7 +111,7 @@ unsigned int TextureManager::loadTextureFromFile(const std::string& path) {
         } else if (nrChannels == 4) {
             format = GL_RGBA; internalFormat = GL_SRGB_ALPHA;
         } else {
-            std::cerr << "Unsupported number of channels: " << nrChannels << " in " << path << "\n";
+            std::cerr << "Unsupported number of channels: " << nrChannels << " in " << path << std::endl;
             stbi_image_free(data);
             glDeleteTextures(1, &textureID);
             return 0;
@@ -115,8 +129,8 @@ unsigned int TextureManager::loadTextureFromFile(const std::string& path) {
 
         stbi_image_free(data);
     } else {
-        std::cerr << "Failed to load texture: " << path << "\n";
-        std::cerr << "STB Image error: " << stbi_failure_reason() << "\n";
+        std::cerr << "Failed to load texture: " << path << std::endl;
+        std::cerr << "STB Image error: " << stbi_failure_reason() << std::endl;
         glDeleteTextures(1, &textureID);
         return 0;
     }

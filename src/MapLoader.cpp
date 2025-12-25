@@ -92,5 +92,6 @@ Scene MAPLoader::loadMAP(const std::string& path, const Shader &shader, const Sh
         else scene.opaqueObjects.push_back(obj);
     }
 
+    std::cout << "Loaded map: " << path << std::endl;
     return scene;
 }

@@ -26,14 +26,6 @@ public:
     // Constructor with position and Euler angles (pitch, yaw, roll)
     Camera(const glm::vec3& initPosition, const glm::vec3& eulerAngles) noexcept;
 
-    // Allow copying
-    Camera(const Camera&) = default;
-    Camera& operator=(const Camera&) = default;
-
-    // Allow moving
-    Camera(Camera&&) = default;
-    Camera& operator=(Camera&&) = default;
-
     glm::vec3 Forward() const noexcept;
     glm::vec3 Right()   const noexcept;
     glm::vec3 Up()      const noexcept;

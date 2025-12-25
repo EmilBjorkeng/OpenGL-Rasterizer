@@ -7,11 +7,11 @@
 #include <iostream>
 #include <filesystem>
 
-bool Material::loadMTL(const std::string& path, const std::string &materialName) {
+void Material::loadMTL(const std::string& path, const std::string &materialName) {
     std::ifstream in(path);
     if (!in.is_open()) {
         std::cerr << "Failed to open MTL file: " << path << "\n";
-        return false;
+        return;
     }
 
     std::string line;
@@ -56,5 +56,4 @@ bool Material::loadMTL(const std::string& path, const std::string &materialName)
             diffuseTexture = TextureManager::getInstance().loadTexture(texturePath);
         }
     }
-    return true;
 }

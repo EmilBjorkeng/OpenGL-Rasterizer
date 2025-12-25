@@ -16,16 +16,6 @@ struct Scene {
     // Ownership
     std::vector<std::unique_ptr<Object>> objectOwnership;
     std::vector<std::unique_ptr<Light>> lightOwnership;
-
-    Scene() = default;
-
-    // Remove copying
-    Scene(const Scene&) = delete;
-    Scene& operator=(const Scene&) = delete;
-
-    // Allow moving
-    Scene(Scene&&) = default;
-    Scene& operator=(Scene&&) = default;
 };
 
 class MAPLoader {
